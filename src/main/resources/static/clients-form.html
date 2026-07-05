@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Клиент</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .notification {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: none;
+            font-size: 14px;
+        }
+        .notification.error {
+            background: #fdecea;
+            color: #b71c1c;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav><a href="/clients.html">← Назад</a></nav>
+    <h1 id="formTitle">Клиент</h1>
+
+    <!-- Блок для уведомлений -->
+    <div id="notification" class="notification error"></div>
+
+    <form id="clientForm" class="form">
+        <div class="form-group">
+            <label for="lastName">Фамилия:</label>
+            <input type="text" id="lastName" name="lastName" required>
+        </div>
+        <div class="form-group">
+            <label for="firstName">Имя:</label>
+            <input type="text" id="firstName" name="firstName" required>
+        </div>
+        <div class="form-group">
+            <label for="middleName">Отчество:</label>
+            <input type="text" id="middleName" name="middleName">
+        </div>
+        <div class="form-group">
+            <label for="birthDate">Дата рождения:</label>
+            <input type="date" id="birthDate" name="birthDate" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email">
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">Сохранить</button>
+            <a href="/clients.html" class="btn">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientId = urlParams.get('id');
+    const form = document.getElementById('clientForm');
+    const notification = document.getElementById('notification');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (clientId) {
+        document.getElementById('formTitle').textContent = 'Редактирование клиента';
+        loadClient();
+    } else {
+        document.getElementById('formTitle').textContent = 'Добавление клиента';
+    }
+
+    async function loadClient() {
+        const response = await fetch(`/clients?pageNumber=0&pageSize=1000`);
+        const data = await response.json();
+        const client = data.content.find(c => c.id == clientId);
+        if (client) {
+            document.getElementById('lastName').value = client.lastName;
+            document.getElementById('firstName').value = client.firstName;
+            document.getElementById('middleName').value = client.middleName || '';
+            document.getElementById('birthDate').value = client.birthDate;
+            document.getElementById('email').value = client.email || '';
+        }
+    }
+
+    function showError(message) {
+        notification.textContent = message;
+        notification.style.display = 'block';
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 5000);
+    }
+
+    function hideError() {
+        notification.style.display = 'none';
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError();
+        submitBtn.disabled = true;
+
+        const clientData = {
+            lastName: document.getElementById('lastName').value,
+            firstName: document.getElementById('firstName').value,
+            middleName: document.getElementById('middleName').value,
+            birthDate: document.getElementById('birthDate').value,
+            email: document.getElementById('email').value
+        };
+
+        try {
+            let response;
+
+            if (clientId) {
+                response = await fetch(`/clients/${clientId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(clientData)
+                });
+            } else {
+                response = await fetch('/clients', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(clientData)
+                });
+            }
+
+            if (!response.ok) {
+                let errorMessage = 'Не удалось сохранить клиента';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                } catch (_) {
+                }
+                showError(errorMessage);
+                return;
+            }
+
+            window.location.href = '/clients.html';
+
+        } catch (err) {
+            showError('Ошибка сети. Проверьте подключение к серверу.');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

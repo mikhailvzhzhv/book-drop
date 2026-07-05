@@ -1,4 +1,4 @@
-package com.github.mikhailvzhzhv.bookdrop.api.controller.client.model;
+package com.github.mikhailvzhzhv.bookdrop.controller.client.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,4 +21,6 @@ public class ClientResponse {
     private String lastName;
 
     private LocalDate birthDate;
+
+    private String email;
 }

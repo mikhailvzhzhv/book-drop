@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Книга</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .notification {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: none;
+            font-size: 14px;
+        }
+        .notification.error {
+            background: #fdecea;
+            color: #b71c1c;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav><a href="/books.html">← Назад</a></nav>
+    <h1 id="formTitle">Книга</h1>
+
+    <!-- Блок для уведомлений -->
+    <div id="notification" class="notification error"></div>
+
+    <form id="bookForm" class="form">
+        <div class="form-group">
+            <label for="title">Название:</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+        <div class="form-group">
+            <label for="author">Автор:</label>
+            <input type="text" id="author" name="author" required>
+        </div>
+        <div class="form-group">
+            <label for="isbn">ISBN:</label>
+            <input type="text" id="isbn" name="isbn" required>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">Сохранить</button>
+            <a href="/books.html" class="btn">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookId = urlParams.get('id');
+    const form = document.getElementById('bookForm');
+    const notification = document.getElementById('notification');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (bookId) {
+        document.getElementById('formTitle').textContent = 'Редактирование книги';
+        loadBook();
+    } else {
+        document.getElementById('formTitle').textContent = 'Добавление книги';
+    }
+
+    async function loadBook() {
+        const response = await fetch(`/books?pageNumber=0&pageSize=1000`);
+        const data = await response.json();
+        const book = data.content.find(b => b.id == bookId);
+        if (book) {
+            document.getElementById('title').value = book.title;
+            document.getElementById('author').value = book.author;
+            document.getElementById('isbn').value = book.isbn;
+        }
+    }
+
+    function showError(message) {
+        notification.textContent = message;
+        notification.style.display = 'block';
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 5000);
+    }
+
+    function hideError() {
+        notification.style.display = 'none';
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError();
+        submitBtn.disabled = true;
+
+        const bookData = {
+            title: document.getElementById('title').value,
+            author: document.getElementById('author').value,
+            isbn: document.getElementById('isbn').value
+        };
+
+        try {
+            let response;
+
+            if (bookId) {
+                response = await fetch(`/books/${bookId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookData)
+                });
+            } else {
+                response = await fetch('/books', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookData)
+                });
+            }
+
+            if (!response.ok) {
+                // Парсим JSON-ответ с ошибкой от бэкенда
+                let errorMessage = 'Не удалось сохранить книгу';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                } catch (_) {
+                }
+                showError(errorMessage);
+                return;
+            }
+
+            window.location.href = '/books.html';
+
+        } catch (err) {
+            showError('Ошибка сети. Проверьте подключение к серверу.');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

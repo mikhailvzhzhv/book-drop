@@ -1,8 +1,8 @@
-package com.github.mikhailvzhzhv.bookdrop.api.controller.book_rental;
+package com.github.mikhailvzhzhv.bookdrop.controller.book_rental;
 
-import com.github.mikhailvzhzhv.bookdrop.api.controller.book_rental.model.BookRentalRequest;
-import com.github.mikhailvzhzhv.bookdrop.api.controller.book_rental.model.BookRentalResponse;
-import com.github.mikhailvzhzhv.bookdrop.api.controller.book_rental.model.PageRequest;
+import com.github.mikhailvzhzhv.bookdrop.controller.book_rental.model.BookRentalRequest;
+import com.github.mikhailvzhzhv.bookdrop.controller.book_rental.model.BookRentalResponse;
+import com.github.mikhailvzhzhv.bookdrop.controller.book_rental.model.PageRequest;
 import com.github.mikhailvzhzhv.bookdrop.core.service.book_rental.domain.BookRental;
 import com.github.mikhailvzhzhv.bookdrop.core.service.book_rental.domain.BookRentalData;
 import com.github.mikhailvzhzhv.bookdrop.core.service.book_rental.domain.PageData;

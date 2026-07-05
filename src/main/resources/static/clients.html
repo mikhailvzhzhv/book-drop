@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Клиенты</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <nav><a href="/">← Главная</a></nav>
+    <h1>👥 Клиенты</h1>
+
+    <div class="actions">
+        <a href="/clients-form.html" class="btn btn-primary">+ Добавить клиента</a>
+    </div>
+
+    <table id="clientsTable">
+        <thead>
+        <tr>
+            <th>№</th>
+            <th>Фамилия</th>
+            <th>Имя</th>
+            <th>Отчество</th>
+            <th>Дата рождения</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div id="pagination" class="pagination"></div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = parseInt(urlParams.get('page') || '0');
+    const pageSize = parseInt(urlParams.get('size') || '10');
+
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    async function loadClients() {
+        const response = await fetch(`/clients?pageNumber=${currentPage}&pageSize=${pageSize}`);
+        const data = await response.json();
+
+        const tbody = document.querySelector('#clientsTable tbody');
+        tbody.innerHTML = '';
+
+        if (data.content.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty">Клиенты не найдены</td></tr>';
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
+
+        data.content.forEach((client, index) => {
+            // Сквозная нумерация с учётом текущей страницы
+            const rowNumber = currentPage * pageSize + index + 1;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${rowNumber}</td>
+                <td>${escapeHtml(client.lastName)}</td>
+                <td>${escapeHtml(client.firstName)}</td>
+                <td>${escapeHtml(client.middleName) || '-'}</td>
+                <td>${escapeHtml(formatDate(client.birthDate))}</td>
+                <td class="actions-cell">
+                    <a href="/clients-form.html?id=${client.id}" class="btn btn-small">Редактировать</a>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        renderPagination(data);
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('ru-RU');
+    }
+
+    function renderPagination(data) {
+        const pagination = document.getElementById('pagination');
+        if (data.totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        if (currentPage > 0) {
+            html += `<a href="?page=${currentPage - 1}&size=${pageSize}" class="btn">← Предыдущая</a>`;
+        }
+        html += `<span class="page-info">Страница ${currentPage + 1} из ${data.totalPages}</span>`;
+        if (currentPage < data.totalPages - 1) {
+            html += `<a href="?page=${currentPage + 1}&size=${pageSize}" class="btn">Следующая →</a>`;
+        }
+        pagination.innerHTML = html;
+    }
+
+    loadClients();
+</script>
+</body>
+</html>

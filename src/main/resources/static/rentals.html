@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Аренды</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+    <nav><a href="/">← Главная</a></nav>
+    <h1>📋 Аренды</h1>
+
+    <div class="actions">
+        <a href="/rentals-form.html" class="btn btn-primary">+ Выдать книгу</a>
+    </div>
+
+    <table id="rentalsTable">
+        <thead>
+        <tr>
+            <th>Клиент</th>
+            <th>Книга</th>
+            <th>Автор</th>
+            <th>ISBN</th>
+            <th>Дата выдачи</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div id="pagination" class="pagination"></div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentPage = parseInt(urlParams.get('page') || '0');
+    const pageSize = parseInt(urlParams.get('size') || '10');
+
+    async function loadRentals() {
+        const response = await fetch(`/rent?pageNumber=${currentPage}&pageSize=${pageSize}`);
+        const data = await response.json();
+
+        const tbody = document.querySelector('#rentalsTable tbody');
+        tbody.innerHTML = '';
+
+        if (data.content.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty">Аренды не найдены</td></tr>';
+            document.getElementById('pagination').innerHTML = '';
+            return;
+        }
+
+        data.content.forEach(rental => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td>${rental.client.lastName} ${rental.client.firstName} ${rental.client.middleName || ''}</td>
+                    <td>${rental.book.title}</td>
+                    <td>${rental.book.author}</td>
+                    <td>${rental.book.isbn}</td>
+                    <td>${formatDateTime(rental.rentalDate)}</td>
+                `;
+            tbody.appendChild(row);
+        });
+
+        renderPagination(data);
+    }
+
+    function formatDateTime(dateStr) {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return date.toLocaleString('ru-RU');
+    }
+
+    function renderPagination(data) {
+        const pagination = document.getElementById('pagination');
+        if (data.totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        if (currentPage > 0) {
+            html += `<a href="?page=${currentPage - 1}&size=${pageSize}" class="btn">← Предыдущая</a>`;
+        }
+        html += `<span class="page-info">Страница ${currentPage + 1} из ${data.totalPages}</span>`;
+        if (currentPage < data.totalPages - 1) {
+            html += `<a href="?page=${currentPage + 1}&size=${pageSize}" class="btn">Следующая →</a>`;
+        }
+        pagination.innerHTML = html;
+    }
+
+    loadRentals();
+</script>
+</body>
+</html>

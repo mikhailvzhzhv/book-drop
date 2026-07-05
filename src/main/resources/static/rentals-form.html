@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Выдача книги</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .notification {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: none;
+            font-size: 14px;
+        }
+        .notification.error {
+            background: #fdecea;
+            color: #b71c1c;
+            border: 1px solid #f5c6cb;
+        }
+        .notification.success {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #c8e6c9;
+        }
+        .search-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        .search-row input {
+            flex: 1;
+        }
+        .found-info {
+            margin-top: 8px;
+            padding: 10px 12px;
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #0d47a1;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <nav><a href="/rentals.html">← Назад</a></nav>
+    <h1>Выдача книги</h1>
+
+    <div id="notification" class="notification error"></div>
+
+    <form id="rentalForm" class="form">
+        <!-- Поиск книги -->
+        <div class="form-group">
+            <label for="isbn">ISBN книги:</label>
+            <div class="search-row">
+                <input type="text" id="isbn" name="isbn" placeholder="Введите ISBN" required>
+                <button type="button" class="btn" id="findBookBtn">Найти книгу</button>
+            </div>
+            <div id="bookInfo" class="found-info"></div>
+            <input type="hidden" id="bookId" name="bookId">
+        </div>
+
+        <!-- Поиск клиента -->
+        <div class="form-group">
+            <label for="email">Email клиента:</label>
+            <div class="search-row">
+                <input type="email" id="email" name="email" placeholder="Введите email" required>
+                <button type="button" class="btn" id="findClientBtn">Найти клиента</button>
+            </div>
+            <div id="clientInfo" class="found-info"></div>
+            <input type="hidden" id="clientId" name="clientId">
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">Выдать</button>
+            <a href="/rentals.html" class="btn">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const notification = document.getElementById('notification');
+    const submitBtn = document.getElementById('submitBtn');
+    const bookIdInput = document.getElementById('bookId');
+    const clientIdInput = document.getElementById('clientId');
+
+    function showNotification(message, type = 'error') {
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.style.display = 'block';
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 5000);
+    }
+
+    function hideNotification() {
+        notification.style.display = 'none';
+    }
+
+    // Поиск книги по ISBN
+    document.getElementById('findBookBtn').addEventListener('click', async () => {
+        const isbn = document.getElementById('isbn').value.trim();
+        if (!isbn) {
+            showNotification('Введите ISBN');
+            return;
+        }
+
+        hideNotification();
+        const bookInfo = document.getElementById('bookInfo');
+        bookInfo.style.display = 'none';
+        bookIdInput.value = '';
+
+        try {
+            const response = await fetch(`/books/search?isbn=${encodeURIComponent(isbn)}`);
+
+            if (!response.ok) {
+                let errorMessage = 'Книга не найдена';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                } catch (_) {}
+                showNotification(errorMessage);
+                return;
+            }
+
+            const book = await response.json();
+            bookIdInput.value = book.id;
+            bookInfo.textContent = `✓ Найдена: «${book.title}» — ${book.author}`;
+            bookInfo.style.display = 'block';
+        } catch (err) {
+            showNotification('Ошибка сети при поиске книги');
+        }
+    });
+
+    // Поиск клиента по email
+    document.getElementById('findClientBtn').addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        if (!email) {
+            showNotification('Введите email');
+            return;
+        }
+
+        hideNotification();
+        const clientInfo = document.getElementById('clientInfo');
+        clientInfo.style.display = 'none';
+        clientIdInput.value = '';
+
+        try {
+            const response = await fetch(`/clients/search?email=${encodeURIComponent(email)}`);
+
+            if (!response.ok) {
+                let errorMessage = 'Клиент не найден';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                } catch (_) {}
+                showNotification(errorMessage);
+                return;
+            }
+
+            const client = await response.json();
+            clientIdInput.value = client.id;
+            const fio = [client.lastName, client.firstName, client.middleName].filter(Boolean).join(' ');
+            clientInfo.textContent = `✓ Найден: ${fio}`;
+            clientInfo.style.display = 'block';
+        } catch (err) {
+            showNotification('Ошибка сети при поиске клиента');
+        }
+    });
+
+    // Отправка формы
+    document.getElementById('rentalForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideNotification();
+
+        if (!bookIdInput.value) {
+            showNotification('Сначала найдите книгу по ISBN');
+            return;
+        }
+        if (!clientIdInput.value) {
+            showNotification('Сначала найдите клиента по email');
+            return;
+        }
+
+        submitBtn.disabled = true;
+
+        const rentalData = {
+            clientId: parseInt(clientIdInput.value),
+            bookId: parseInt(bookIdInput.value)
+        };
+
+        try {
+            const response = await fetch('/rent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(rentalData)
+            });
+
+            if (!response.ok) {
+                let errorMessage = 'Не удалось выдать книгу';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                } catch (_) {}
+                showNotification(errorMessage);
+                return;
+            }
+
+            window.location.href = '/rentals.html';
+        } catch (err) {
+            showNotification('Ошибка сети. Проверьте подключение к серверу.');
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

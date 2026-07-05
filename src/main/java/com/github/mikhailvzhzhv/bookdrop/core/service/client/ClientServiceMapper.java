@@ -1,12 +1,17 @@
 package com.github.mikhailvzhzhv.bookdrop.core.service.client;
 
-import com.github.mikhailvzhzhv.bookdrop.core.repository.entity.Client;
+import com.github.mikhailvzhzhv.bookdrop.core.repository.entity.ClientEntity;
+import com.github.mikhailvzhzhv.bookdrop.core.service.client.domain.Client;
 import org.mapstruct.Mapper;
 import org.springframework.data.domain.Page;
 
 @Mapper
 public interface ClientServiceMapper {
-    Client toEntity(com.github.mikhailvzhzhv.bookdrop.core.service.client.domain.Client client);
+    ClientEntity toEntity(Client client);
 
-    Page<com.github.mikhailvzhzhv.bookdrop.core.service.client.domain.Client> toDomain(Page<Client> all);
+    default Page<Client> toDomain(Page<ClientEntity> all) {
+        return all.map(this::toDomain);
+    }
+
+    Client toDomain(ClientEntity client);
 }

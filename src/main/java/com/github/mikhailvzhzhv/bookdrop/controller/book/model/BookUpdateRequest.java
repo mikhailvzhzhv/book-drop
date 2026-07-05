@@ -1,4 +1,4 @@
-package com.github.mikhailvzhzhv.bookdrop.api.controller.book.model;
+package com.github.mikhailvzhzhv.bookdrop.controller.book.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

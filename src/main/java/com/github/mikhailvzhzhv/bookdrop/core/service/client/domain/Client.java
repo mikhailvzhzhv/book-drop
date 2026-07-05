@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Client {
-    private Long id;
+    private long id;
 
     private String firstName;
 
@@ -21,4 +21,6 @@ public class Client {
     private String lastName;
 
     private LocalDate birthDate;
+
+    private String email;
 }

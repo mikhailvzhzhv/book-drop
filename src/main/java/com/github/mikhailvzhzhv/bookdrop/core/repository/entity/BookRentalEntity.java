@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookRental {
+public class BookRentalEntity {
 
     @EmbeddedId
     private BookRentalId id;
@@ -29,12 +29,12 @@ public class BookRental {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("bookId")
     @JoinColumn(name = "book_id")
-    private Book book;
+    private BookEntity book;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("clientId")
     @JoinColumn(name = "client_id")
-    private Client client;
+    private ClientEntity client;
 
     @Column(name = "rental_date")
     private LocalDateTime rentalDate;
