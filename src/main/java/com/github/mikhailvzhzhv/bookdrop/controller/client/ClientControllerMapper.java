@@ -1,9 +1,9 @@
-package com.github.mikhailvzhzhv.bookdrop.controller.client;
+package com.github.mikhailvzhzhv.bookdrop.api.controller.client;
 
-import com.github.mikhailvzhzhv.bookdrop.controller.client.model.ClientRequest;
-import com.github.mikhailvzhzhv.bookdrop.controller.client.model.ClientResponse;
-import com.github.mikhailvzhzhv.bookdrop.controller.client.model.ClientUpdateRequest;
-import com.github.mikhailvzhzhv.bookdrop.controller.client.model.PageRequest;
+import com.github.mikhailvzhzhv.bookdrop.api.controller.client.model.ClientRequest;
+import com.github.mikhailvzhzhv.bookdrop.api.controller.client.model.ClientResponse;
+import com.github.mikhailvzhzhv.bookdrop.api.controller.client.model.ClientUpdateRequest;
+import com.github.mikhailvzhzhv.bookdrop.api.controller.client.model.PageRequest;
 import com.github.mikhailvzhzhv.bookdrop.core.service.client.domain.Client;
 import com.github.mikhailvzhzhv.bookdrop.core.service.client.domain.PageData;
 import org.mapstruct.Mapper;
@@ -18,5 +18,9 @@ public interface ClientControllerMapper {
 
     PageData toDomain(PageRequest request);
 
-    Page<ClientResponse> toModel(Page<Client> all);
+    default Page<ClientResponse> toModel(Page<Client> all) {
+        return all.map(this::toModel);
+    }
+
+    ClientResponse toModel(Client client);
 }

@@ -1,10 +1,9 @@
-package com.github.mikhailvzhzhv.bookdrop.controller.book.model;
+package com.github.mikhailvzhzhv.bookdrop.api.controller.book.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.lang.Nullable;
 
 @Getter
 @Setter

@@ -21,7 +21,7 @@ import javax.persistence.Table;
 public class Book {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "title")
@@ -30,6 +30,6 @@ public class Book {
     @Column(name = "author")
     private String author;
 
-    @Column(name = "isbn", unique = true)
+    @Column(name = "isbn")
     private String isbn;
 }

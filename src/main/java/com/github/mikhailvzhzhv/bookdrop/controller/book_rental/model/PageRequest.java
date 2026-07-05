@@ -1,4 +1,4 @@
-package com.github.mikhailvzhzhv.bookdrop.controller.book_rental.model;
+package com.github.mikhailvzhzhv.bookdrop.api.controller.book_rental.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
